@@ -11,6 +11,7 @@ dependencies = [
     "invisible-watermark>=0.2.0",
     "pydantic>=2.11.9",
     "safetensors>=0.6.2",
+    "torch>=2.8.0",
     "transformers>=4.56.1",
     "uvicorn[standard]>=0.35.0",
 ]
