@@ -9,9 +9,12 @@ dependencies = [
     "diffusers>=0.35.1",
     "fastapi>=0.116.1",
     "invisible-watermark>=0.2.0",
+    "peft>=0.17.1",
     "pydantic>=2.11.9",
     "safetensors>=0.6.2",
     "torch>=2.8.0",
+    "torchvision>=0.23.0",
     "transformers>=4.56.1",
     "uvicorn[standard]>=0.35.0",
+    "xformers>=0.0.32.post2",
 ]
