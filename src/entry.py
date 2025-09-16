@@ -9,7 +9,7 @@ parser.add_argument(
     "--database-endpoint",
     type=str,
     required=False,
-    default="http://localhost:8001",
+    default="http://192.168.11.129:8001",
     help="the endpoint for the database",
 )
 parser.add_argument(
@@ -17,7 +17,7 @@ parser.add_argument(
     "--model-server",
     type=str,
     required=False,
-    default="http://localhost:8005",
+    default="http://192.168.11.145:8005",
     help="the endpoint for the model generation server",
 )
 parser.add_argument(
