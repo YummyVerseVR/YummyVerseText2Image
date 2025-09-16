@@ -97,8 +97,8 @@ class App:
             )
 
         image = generated.images[0]
-        await self.__upload_image(user_id, image)
         await self.__call_model_generator(user_id, image)
+        await self.__upload_image(user_id, image)
 
         return JSONResponse(
             status_code=200,
