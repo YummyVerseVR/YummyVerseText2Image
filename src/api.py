@@ -65,13 +65,14 @@ class App:
         )
 
     async def __upload_image(self, user_id: str, image: BytesIO):
-        file = {"file": image}
+        file = {"file": ("image.png", image, "image/png")}
         data = {"user_id": user_id}
 
         if self.__debug:
             print(f"Uploading image to {self.__db_endpoint}/save/image")
             return
 
+        print("Uploading image...")
         requests.post(
             f"{self.__db_endpoint}/save/image",
             files=file,
