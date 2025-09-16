@@ -1,5 +1,5 @@
+import asyncio
 from io import BytesIO
-from PIL.Image import Image
 from diffusers.pipelines.stable_diffusion.pipeline_output import (
     StableDiffusionPipelineOutput,
 )
@@ -72,7 +72,6 @@ class App:
             print(f"Uploading image to {self.__db_endpoint}/save/image")
             return
 
-        print("Uploading image...")
         requests.post(
             f"{self.__db_endpoint}/save/image",
             files=file,
@@ -104,10 +103,10 @@ class App:
         buf = BytesIO()
         image.save(buf, format="png")
         buf.seek(0)
-        await self.__call_model_generator(user_id, buf)
-        await self.__upload_image(user_id, buf)
+        asyncio.create_task(self.__call_model_generator(user_id, buf))
+        asyncio.create_task(self.__upload_image(user_id, buf))
 
         return JSONResponse(
             status_code=200,
-            content={"message": "Image generated and uploaded successfully"},
+            content={"message": "Image generated successfully"},
         )
