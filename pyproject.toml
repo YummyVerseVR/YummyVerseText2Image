@@ -11,6 +11,7 @@ dependencies = [
     "invisible-watermark>=0.2.0",
     "peft>=0.17.1",
     "pydantic>=2.11.9",
+    "python-multipart>=0.0.20",
     "safetensors>=0.6.2",
     "torch>=2.8.0",
     "torchvision>=0.23.0",

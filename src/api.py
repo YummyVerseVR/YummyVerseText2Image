@@ -8,7 +8,7 @@ from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion import (
 from diffusers.schedulers.scheduling_dpmsolver_multistep import (
     DPMSolverMultistepScheduler,
 )
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Form
 from fastapi.responses import JSONResponse
 import torch
 import requests
@@ -82,7 +82,9 @@ class App:
         return self.__app
 
     # /generate
-    async def generate_image(self, user_id: str, prompt: str) -> JSONResponse:
+    async def generate_image(
+        self, user_id: str = Form(...), prompt: str = Form(...)
+    ) -> JSONResponse:
         generated = self.__pipe(
             prompt=App.PROMPT_TEMPLATE.format(prompt, prompt),
             negative_prompt=App.NEGATIVE_PROMPT,
