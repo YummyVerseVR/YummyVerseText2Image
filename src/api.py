@@ -1,3 +1,4 @@
+from io import BytesIO
 from PIL.Image import Image
 from diffusers.pipelines.stable_diffusion.pipeline_output import (
     StableDiffusionPipelineOutput,
@@ -48,13 +49,12 @@ class App:
     def __setup_routes(self):
         self.__router.add_api_route("/generate", self.generate_image, methods=["POST"])
 
-    async def __call_model_generator(self, user_id: str, image: Image):
-        file = {"file": image.tobytes()}
+    async def __call_model_generator(self, user_id: str, image: BytesIO):
+        file = {"file": image}
         data = {"user_id": user_id}
 
         if self.__debug:
             print(f"Calling model generator at {self.__model_server_endpoint}/generate")
-            image.save("debug_image.png")
             return
 
         requests.post(
@@ -63,16 +63,16 @@ class App:
             data=data,
         )
 
-    async def __upload_image(self, user_id: str, image: Image):
-        file = {"file": image.tobytes()}
+    async def __upload_image(self, user_id: str, image: BytesIO):
+        file = {"file": image}
         data = {"user_id": user_id}
 
         if self.__debug:
-            print(f"Uploading image to {self.__db_endpoint}/upload")
+            print(f"Uploading image to {self.__db_endpoint}/save/image")
             return
 
         requests.post(
-            f"{self.__db_endpoint}/upload",
+            f"{self.__db_endpoint}/save/image",
             files=file,
             data=data,
         )
@@ -99,8 +99,11 @@ class App:
             )
 
         image = generated.images[0]
-        await self.__call_model_generator(user_id, image)
-        await self.__upload_image(user_id, image)
+        buf = BytesIO()
+        image.save(buf, format="png")
+        buf.seek(0)
+        await self.__call_model_generator(user_id, buf)
+        await self.__upload_image(user_id, buf)
 
         return JSONResponse(
             status_code=200,
