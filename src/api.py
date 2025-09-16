@@ -42,7 +42,7 @@ class App:
         self.__pipe.load_lora_weights(App.LORA_MODEL_ID)
         self.__pipe.enable_attention_slicing()
         self.__pipe.enable_xformers_memory_efficient_attention()
-        self.__pipe.enable_sequential_cpu_offload()
+        self.__pipe.enable_model_cpu_offload()
         self.__pipe.fuse_lora()
 
         self.__setup_routes()
