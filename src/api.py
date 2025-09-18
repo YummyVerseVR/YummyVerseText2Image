@@ -13,7 +13,6 @@ from fastapi import FastAPI, APIRouter, Form
 from fastapi.responses import JSONResponse
 import torch
 import requests
-import asyncio
 
 
 class App:
