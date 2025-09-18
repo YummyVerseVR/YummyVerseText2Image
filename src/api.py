@@ -115,8 +115,11 @@ class App:
             buf = BytesIO()
             image.save(buf, format="png")
             buf.seek(0)
+            gen_buf = BytesIO()
+            image.save(gen_buf, format="png")
+            gen_buf.seek(0)
             asyncio.create_task(self.__call_model_generator(user_id, buf))
-            asyncio.create_task(self.__upload_image(user_id, buf))
+            asyncio.create_task(self.__upload_image(user_id, gen_buf))
 
             return JSONResponse(
                 status_code=200,
