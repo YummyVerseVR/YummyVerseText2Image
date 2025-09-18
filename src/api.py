@@ -3,6 +3,7 @@ from io import BytesIO
 from diffusers.pipelines.stable_diffusion.pipeline_output import (
     StableDiffusionPipelineOutput,
 )
+from diffusers.pipelines.pipeline_utils import DiffusionPipeline
 from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion import (
     StableDiffusionPipeline,
 )
@@ -16,10 +17,12 @@ import requests
 
 
 class App:
-    STABLE_DIFFUSION_MODEL_ID = "runwayml/stable-diffusion-v1-5"
-    LORA_MODEL_ID = "michecosta/food_mic"
-    PROMPT_TEMPLATE = "A high quality photo of a {}, 1 {}, centered composition, isolated, front view, professional food photography, white background"
-    NEGATIVE_PROMPT = "plate, dish, bowl, utensils, fork, spoon, chopsticks, table, napkin, text, watermark, hands, multiple objects, low quality, blurry, deformed, disfigured, distorted, ugly"
+    # MODEL_ID = "runwayml/stable-diffusion-v1-5"
+    MODEL_ID = "stabilityai/stable-diffusion-xl-base-1.0"
+    # LORA_MODEL_ID = "michecosta/food_mic"
+    LORA_MODEL_ID = "jcjo/pyc-food-sdxl-lora"
+    PROMPT_TEMPLATE = "A high quality food photo of a {}, 1 {}, centered composition, isolated, front view, white background"
+    NEGATIVE_PROMPT = "plate, dish, bowl, utensils, fork, spoon, chopsticks, table, napkin, text, watermark, hands, multiple objects, low quality, blurry, deformed, disfigured, distorted"
 
     def __init__(
         self,
@@ -37,7 +40,7 @@ class App:
         self.__model_server_endpoint = model_server_endpoint
 
         self.__pipe = StableDiffusionPipeline.from_pretrained(
-            App.STABLE_DIFFUSION_MODEL_ID,
+            App.MODEL_ID,
             torch_dtype=torch.float16,
         )
         self.__pipe.scheduler = DPMSolverMultistepScheduler.from_config(
@@ -101,6 +104,8 @@ class App:
     async def generate_image(
         self, user_id: str = Form(...), prompt: str = Form(...)
     ) -> JSONResponse:
+        print(f"[LOG] Received generate request with prompt: {prompt}")
+
         if self.__use_stable_diffusion:
             generated = self.__pipe(
                 prompt=App.PROMPT_TEMPLATE.format(prompt, prompt),
