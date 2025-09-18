@@ -1,3 +1,4 @@
+import asyncio
 from io import BytesIO
 from diffusers.pipelines.stable_diffusion.pipeline_output import (
     StableDiffusionPipelineOutput,
@@ -87,7 +88,6 @@ class App:
             print(f"Uploading image to {self.__db_endpoint}/save/image")
             return
 
-        print("Uploading image...")
         requests.post(
             f"{self.__db_endpoint}/save/image",
             files=file,
