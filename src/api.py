@@ -1,5 +1,4 @@
 from io import BytesIO
-from PIL.Image import Image
 from diffusers.pipelines.stable_diffusion.pipeline_output import (
     StableDiffusionPipelineOutput,
 )
@@ -13,6 +12,7 @@ from fastapi import FastAPI, APIRouter, Form
 from fastapi.responses import JSONResponse
 import torch
 import requests
+import asyncio
 
 
 class App:
@@ -22,12 +22,17 @@ class App:
     NEGATIVE_PROMPT = "plate, dish, bowl, utensils, fork, spoon, chopsticks, table, napkin, text, watermark, hands, multiple objects, low quality, blurry, deformed, disfigured, distorted, ugly"
 
     def __init__(
-        self, db_endpoint: str, model_server_endpoint: str, debug: bool = False
+        self,
+        db_endpoint: str,
+        model_server_endpoint: str,
+        debug: bool,
+        use_stable_diffusion: bool = True,
     ):
         self.__debug = debug
         self.__router = APIRouter()
         self.__app = FastAPI()
 
+        self.__use_stable_diffusion = use_stable_diffusion
         self.__db_endpoint = db_endpoint
         self.__model_server_endpoint = model_server_endpoint
 
@@ -49,6 +54,7 @@ class App:
 
     def __setup_routes(self):
         self.__router.add_api_route("/generate", self.generate_image, methods=["POST"])
+        self.__router.add_api_route("/send", self.send_image, methods=["POST"])
 
     async def __call_model_generator(self, user_id: str, image: BytesIO):
         file = {"file": image}
@@ -62,6 +68,14 @@ class App:
             f"{self.__model_server_endpoint}/generate",
             files=file,
             data=data,
+        )
+
+    async def send_image(self, user_id: str, image: BytesIO) -> JSONResponse:
+        asyncio.create_task(self.__call_model_generator(user_id, image))
+        asyncio.create_task(self.__upload_image(user_id, image))
+        return JSONResponse(
+            status_code=200,
+            content={"message": "Image sent to model generator and uploaded"},
         )
 
     async def __upload_image(self, user_id: str, image: BytesIO):
@@ -87,27 +101,35 @@ class App:
     async def generate_image(
         self, user_id: str = Form(...), prompt: str = Form(...)
     ) -> JSONResponse:
-        generated = self.__pipe(
-            prompt=App.PROMPT_TEMPLATE.format(prompt, prompt),
-            negative_prompt=App.NEGATIVE_PROMPT,
-            width=512,
-            height=512,
-        )
-
-        if not isinstance(generated, StableDiffusionPipelineOutput):
-            return JSONResponse(
-                status_code=500,
-                content={"message": "Failed to generate image"},
+        if self.__use_stable_diffusion:
+            generated = self.__pipe(
+                prompt=App.PROMPT_TEMPLATE.format(prompt, prompt),
+                negative_prompt=App.NEGATIVE_PROMPT,
+                width=512,
+                height=512,
             )
 
-        image = generated.images[0]
-        buf = BytesIO()
-        image.save(buf, format="png")
-        buf.seek(0)
-        await self.__call_model_generator(user_id, buf)
-        await self.__upload_image(user_id, buf)
+            if not isinstance(generated, StableDiffusionPipelineOutput):
+                return JSONResponse(
+                    status_code=500,
+                    content={"message": "Failed to generate image"},
+                )
 
-        return JSONResponse(
-            status_code=200,
-            content={"message": "Image generated and uploaded successfully"},
-        )
+            image = generated.images[0]
+            buf = BytesIO()
+            image.save(buf, format="png")
+            buf.seek(0)
+            asyncio.create_task(self.__call_model_generator(user_id, buf))
+            asyncio.create_task(self.__upload_image(user_id, buf))
+
+            return JSONResponse(
+                status_code=200,
+                content={"message": "Image generated and uploaded successfully"},
+            )
+        else:
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "message": "External image injection is enabled. Use /send to continue."
+                },
+            )
