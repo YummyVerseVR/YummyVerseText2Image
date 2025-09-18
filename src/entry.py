@@ -21,9 +21,9 @@ parser.add_argument(
     help="the endpoint for the model generation server",
 )
 parser.add_argument(
-    "--use-sd",
+    "--disable-SD",
     action="store_true",
-    help="use stable diffusion model server",
+    help="disable stable diffusion model server",
 )
 parser.add_argument(
     "-p",
@@ -36,7 +36,9 @@ parser.add_argument(
 parser.add_argument("--debug", action="store_true", help="enable debug mode")
 
 args = parser.parse_args()
-app = App(args.database_endpoint, args.model_server, args.debug, args.use_sd).get_app()
+app = App(
+    args.database_endpoint, args.model_server, args.debug, args.disable_SD
+).get_app()
 
 if __name__ == "__main__":
     uvicorn.run("entry:app", host="0.0.0.0", port=args.port, log_level="info")

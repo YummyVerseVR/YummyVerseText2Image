@@ -3,7 +3,6 @@ from io import BytesIO
 from diffusers.pipelines.stable_diffusion.pipeline_output import (
     StableDiffusionPipelineOutput,
 )
-from diffusers.pipelines.pipeline_utils import DiffusionPipeline
 from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion import (
     StableDiffusionPipeline,
 )
@@ -17,25 +16,23 @@ import requests
 
 
 class App:
-    # MODEL_ID = "runwayml/stable-diffusion-v1-5"
-    MODEL_ID = "stabilityai/stable-diffusion-xl-base-1.0"
-    # LORA_MODEL_ID = "michecosta/food_mic"
-    LORA_MODEL_ID = "jcjo/pyc-food-sdxl-lora"
+    MODEL_ID = "runwayml/stable-diffusion-v1-5"
+    LORA_MODEL_ID = "michecosta/food_mic"
     PROMPT_TEMPLATE = "A high quality food photo of a {}, 1 {}, centered composition, isolated, front view, white background"
-    NEGATIVE_PROMPT = "plate, dish, bowl, utensils, fork, spoon, chopsticks, table, napkin, text, watermark, hands, multiple objects, low quality, blurry, deformed, disfigured, distorted"
+    NEGATIVE_PROMPT = "plate, dish, bowl, utensils, table, fork, spoon, chopsticks, text, hands, multiple objects"
 
     def __init__(
         self,
         db_endpoint: str,
         model_server_endpoint: str,
         debug: bool,
-        use_stable_diffusion: bool = True,
+        disable_SD: bool = True,
     ):
         self.__debug = debug
         self.__router = APIRouter()
         self.__app = FastAPI()
 
-        self.__use_stable_diffusion = use_stable_diffusion
+        self.__disable_SD = disable_SD
         self.__db_endpoint = db_endpoint
         self.__model_server_endpoint = model_server_endpoint
 
@@ -57,7 +54,6 @@ class App:
 
     def __setup_routes(self):
         self.__router.add_api_route("/generate", self.generate_image, methods=["POST"])
-        self.__router.add_api_route("/send", self.send_image, methods=["POST"])
         self.__router.add_api_route("/ping", self.ping, methods=["GET"])
 
     async def __call_model_generator(self, user_id: str, image: BytesIO):
@@ -74,20 +70,14 @@ class App:
             data=data,
         )
 
-    async def send_image(self, user_id: str, image: BytesIO) -> JSONResponse:
-        asyncio.create_task(self.__call_model_generator(user_id, image))
-        asyncio.create_task(self.__upload_image(user_id, image))
-        return JSONResponse(
-            status_code=200,
-            content={"message": "Image sent to model generator and uploaded"},
-        )
-
     async def __upload_image(self, user_id: str, image: BytesIO):
         file = {"file": ("image.png", image, "image/png")}
         data = {"user_id": user_id}
 
         if self.__debug:
             print(f"Uploading image to {self.__db_endpoint}/save/image")
+            with open("debug_image.png", "wb") as f:
+                f.write(image.getbuffer())
             return
 
         requests.post(
@@ -106,10 +96,11 @@ class App:
     ) -> JSONResponse:
         print(f"[LOG] Received generate request with prompt: {prompt}")
 
-        if self.__use_stable_diffusion:
+        if not self.__disable_SD:
             generated = self.__pipe(
                 prompt=App.PROMPT_TEMPLATE.format(prompt, prompt),
                 negative_prompt=App.NEGATIVE_PROMPT,
+                num_inference_steps=200,
                 width=512,
                 height=512,
             )
