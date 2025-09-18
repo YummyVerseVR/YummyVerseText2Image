@@ -55,6 +55,7 @@ class App:
     def __setup_routes(self):
         self.__router.add_api_route("/generate", self.generate_image, methods=["POST"])
         self.__router.add_api_route("/send", self.send_image, methods=["POST"])
+        self.__router.add_api_route("/ping", self.ping, methods=["GET"])
 
     async def __call_model_generator(self, user_id: str, image: BytesIO):
         file = {"file": image}
@@ -133,3 +134,6 @@ class App:
                     "message": "External image injection is enabled. Use /send to continue."
                 },
             )
+
+    async def ping(self) -> JSONResponse:
+        return JSONResponse(status_code=200, content={"message": "pong"})
