@@ -7,6 +7,6 @@
     },
     "endpoints": {
         "control": "http://192.168.11.129:8000",
-        "model": "http://192.168.11.129:8003"
+        "model": "http://localhost:8003"
     }
 }
