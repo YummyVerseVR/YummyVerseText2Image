@@ -1,7 +1,8 @@
 {
     "stable_diffusion": {
-        "model": "runwayml/stable-diffusion-v1-5",
+        "model": "stabilityai/stable-diffusion-2-1",
         "lora": "michecosta/food_mic",
+        "use_lora": false,
         "prompt_template": "A high quality food photo of a {food}, 1 {food}, centered composition, isolated, front view, white background",
         "negative_prompt": "plate, dish, bowl, utensils, table, fork, spoon, chopsticks, text, hands, multiple objects"
     },

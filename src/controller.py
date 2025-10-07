@@ -24,7 +24,11 @@ class StableDiffusionController:
             self.__pipe.scheduler.config
         )
         self.__pipe.to("cuda")
-        self.__pipe.load_lora_weights(self.__config.get("lora", "michecosta/food_mic"))
+
+        if self.__config.get("use_lora", False):
+            self.__pipe.load_lora_weights(
+                self.__config.get("lora", "michecosta/food_mic")
+            )
         self.__pipe.enable_attention_slicing()
         self.__pipe.enable_xformers_memory_efficient_attention()
         self.__pipe.enable_model_cpu_offload()
