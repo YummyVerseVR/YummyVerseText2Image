@@ -2,10 +2,16 @@ import asyncio
 import requests
 
 from io import BytesIO
-from fastapi import FastAPI, APIRouter, Form
+from fastapi import FastAPI, APIRouter
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from controller import StableDiffusionController
+
+
+class UserRequest(BaseModel):
+    user_id: str
+    prompt: str
 
 
 class App:
@@ -70,12 +76,10 @@ class App:
         return self.__app
 
     # /generate
-    async def generate_image(
-        self, user_id: str = Form(...), prompt: str = Form(...)
-    ) -> JSONResponse:
-        print(f"[LOG] Received generate request with prompt: {prompt}")
+    async def generate_image(self, request: UserRequest) -> JSONResponse:
+        print(f"[LOG] Received generate request with prompt: {request.prompt}")
 
-        image = await self.__stable_diffusion_controller.generate(prompt)
+        image = await self.__stable_diffusion_controller.generate(request.prompt)
 
         buf = BytesIO()
         image.save(buf, format="png")
@@ -83,8 +87,8 @@ class App:
         gen_buf = BytesIO()
         image.save(gen_buf, format="png")
         gen_buf.seek(0)
-        asyncio.create_task(self.__call_model_generator(user_id, buf))
-        asyncio.create_task(self.__upload_image(user_id, gen_buf))
+        asyncio.create_task(self.__call_model_generator(request.user_id, buf))
+        asyncio.create_task(self.__upload_image(request.user_id, gen_buf))
 
         return JSONResponse(
             status_code=200,
