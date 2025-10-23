@@ -10,11 +10,13 @@ from diffusers.schedulers.scheduling_dpmsolver_multistep import (
     DPMSolverMultistepScheduler,
 )
 from PIL import Image
+from pylognet.client import LoggingClient, LogLevel
 
 
 class StableDiffusionController:
-    def __init__(self, config: dict, debug_mode: bool = False):
+    def __init__(self, config: dict, logger: LoggingClient, debug_mode: bool = False):
         self.__debug = debug_mode
+        self.__logger = logger
         self.__config = config.get("stable_diffusion", {})
         self.__pipe = StableDiffusionPipeline.from_pretrained(
             self.__config.get("model", "runwayml/stable-diffusion-v1-5"),
@@ -23,7 +25,6 @@ class StableDiffusionController:
         self.__pipe.scheduler = DPMSolverMultistepScheduler.from_config(
             self.__pipe.scheduler.config
         )
-        self.__pipe.to("cuda")
 
         if self.__config.get("use_lora", False):
             self.__pipe.load_lora_weights(
@@ -34,8 +35,11 @@ class StableDiffusionController:
         self.__pipe.enable_model_cpu_offload()
         self.__pipe.fuse_lora()
 
-    async def generate(self, prompt: str) -> Image.Image:
-        print(f"[INFO] Received generate request with prompt: {prompt}")
+    def generate(self, prompt: str) -> Image.Image:
+        self.__logger.log(
+            f"Received generate request with prompt: {prompt}",
+            LogLevel.INFO,
+        )
 
         prompt_template = self.__config.get("prompt_template", "{food}")
         negative_prompt = self.__config.get("negative_prompt", "")
@@ -46,6 +50,10 @@ class StableDiffusionController:
             num_inference_steps=200,
             width=512,
             height=512,
+        )
+        self.__logger.log(
+            "Image generation completed",
+            LogLevel.INFO,
         )
 
         if not isinstance(generated, StableDiffusionPipelineOutput):

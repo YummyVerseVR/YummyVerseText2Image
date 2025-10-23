@@ -1,0 +1,14 @@
+{
+  "stable_diffusion": {
+    "model": "runwayml/stable-diffusion-v1-5",
+    "lora": "michecosta/food_mic",
+    "use_lora": true,
+    "prompt_template": "A high quality food photo of a {food}, 1 {food}, centered composition, isolated, front view, white background",
+    "negative_prompt": "plate, dish, bowl, utensils, table, fork, spoon, chopsticks, text, hands, multiple objects"
+  },
+  "endpoints": {
+    "control": "http://192.168.11.129:8000",
+    "model": "http://localhost:8003",
+    "logger": "http://192.168.11.129:9000"
+  }
+}

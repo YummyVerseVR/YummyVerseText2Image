@@ -10,4 +10,5 @@ wheels/
 .venv
 .direnv
 
-debug_image.png
+debug_dump.png
+nohup.out

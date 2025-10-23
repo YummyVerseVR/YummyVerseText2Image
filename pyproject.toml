@@ -11,6 +11,7 @@ dependencies = [
     "invisible-watermark>=0.2.0",
     "peft>=0.17.1",
     "pydantic>=2.11.9",
+    "pylognet",
     "python-multipart>=0.0.20",
     "safetensors>=0.6.2",
     "torch>=2.8.0",
@@ -19,3 +20,6 @@ dependencies = [
     "uvicorn[standard]>=0.35.0",
     "xformers>=0.0.32.post2",
 ]
+
+[tool.uv.sources]
+pylognet = { git = "https://github.com/upiscium/pylognet.git" }
