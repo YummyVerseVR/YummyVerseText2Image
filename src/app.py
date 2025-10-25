@@ -1,3 +1,4 @@
+import asyncio
 import requests
 
 from io import BytesIO
@@ -5,7 +6,6 @@ from fastapi import FastAPI, APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from pylognet.client import LoggingClient, LogLevel
-from concurrent.futures import ThreadPoolExecutor
 
 from controller import StableDiffusionController
 
@@ -37,20 +37,40 @@ class App:
             disable=not logging,
         )
 
+        self.__queue = asyncio.Queue()
         self.__stable_diffusion_controller = StableDiffusionController(
             config,
             self.__logger,
             self.__debug,
         )
-        self.__executor = ThreadPoolExecutor()
         self.__router = APIRouter()
         self.__app = FastAPI()
 
+        asyncio.create_task(self.__worker())
+
         self.__setup_routes()
+
+        self.__logger.log(
+            "Yummy T2I Server initialized.",
+            LogLevel.INFO,
+        )
 
     def __setup_routes(self):
         self.__router.add_api_route("/generate", self.generate, methods=["POST"])
         self.__router.add_api_route("/ping", self.ping, methods=["GET"])
+
+    async def __worker(self):
+        while True:
+            request = await self.__queue.get()
+            try:
+                self.__generate(request)
+            except Exception as e:
+                self.__logger.log(
+                    f"Error processing request: {e}",
+                    LogLevel.ERROR,
+                )
+            finally:
+                self.__queue.task_done()
 
     def __call_model_generator(self, user_id: str, image: BytesIO):
         file = {"file": image}
@@ -110,7 +130,8 @@ class App:
             f"Received generate request with prompt: {request.prompt}",
             LogLevel.INFO,
         )
-        self.__executor.submit(self.__generate, request)
+
+        await self.__queue.put(request)
 
         return JSONResponse(
             status_code=200,
