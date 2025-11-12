@@ -7,8 +7,8 @@
     "negative_prompt": "plate, dish, bowl, utensils, table, fork, spoon, chopsticks, text, hands, multiple objects"
   },
   "endpoints": {
-    "control": "http://192.168.11.129:8000",
-    "model": "http://localhost:8003",
-    "logger": "http://192.168.11.129:9000"
+    "control": "http://192.168.11.147:8000",
+    "model": "http://192.168.11.145:8000",
+    "logger": "http://192.168.11.147:9000"
   }
 }
