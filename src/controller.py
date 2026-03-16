@@ -4,7 +4,7 @@ from diffusers.pipelines.stable_diffusion.pipeline_output import (
     StableDiffusionPipelineOutput,
 )
 from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion import (
-    StableDiffusionPipeline,
+    DiffusionPipeline,
 )
 from diffusers.schedulers.scheduling_dpmsolver_multistep import (
     DPMSolverMultistepScheduler,
@@ -18,9 +18,9 @@ class StableDiffusionController:
         self.__debug = debug_mode
         self.__logger = logger
         self.__config = config.get("stable_diffusion", {})
-        self.__pipe = StableDiffusionPipeline.from_pretrained(
+        self.__pipe = DiffusionPipeline.from_pretrained(
             self.__config.get("model", "runwayml/stable-diffusion-v1-5"),
-            torch_dtype=torch.float16,
+            torch_dtype=torch.bfloat16,
         )
         self.__pipe.scheduler = DPMSolverMultistepScheduler.from_config(
             self.__pipe.scheduler.config
