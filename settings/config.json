@@ -1,14 +1,14 @@
 {
   "stable_diffusion": {
-    "model": "runwayml/stable-diffusion-v1-5",
+    "model": "calcuis/sd3.5-large-gguf",
     "lora": "michecosta/food_mic",
-    "use_lora": true,
+    "use_lora": false,
     "prompt_template": "A high quality food photo of a {food}, 1 {food}, centered composition, isolated, front view, white background",
     "negative_prompt": "plate, dish, bowl, utensils, table, fork, spoon, chopsticks, text, hands, multiple objects"
   },
   "endpoints": {
-    "control": "http://10.0.1.11:8000",
+    "control": "http://10.0.1.5:8000",
     "model": "http://localhost:8003",
-    "logger": "http://10.0.1.11:9000"
+    "logger": "http://10.0.1.5:9000"
   }
 }
